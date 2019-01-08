@@ -33,16 +33,16 @@
 # TODO ADD TO THIS LIST
 $intPrivLocalGroups = @()
 $intPrivLocalGroups += "Administratoren"
-$intPrivLocalGroups += "Backup Operatoren"
-$intPrivLocalGroups += "Hyper-V Administratoren"
-$intPrivLocalGroups += "Super User"
-$intPrivLocalGroups += "Print Operators"
-$intPrivLocalGroups += "Remote Desktop Benutzer"
-$intPrivLocalGroups += "Remote Verwaltungs Benutzer"
+$intPrivLocalGroups += "Sicherungs-Operatoren"
+$intPrivLocalGroups += "Hyper-V-Administratoren"
+$intPrivLocalGroups += "Hauptbenutzer"
+$intPrivLocalGroups += "Gerätebesitzer"
+$intPrivLocalGroups += "RemoteDesktopBenutzer"
+$intPrivLocalGroups += "RemoteVerwaltungsBenutzer"
 
 # TODO ADD TO THIS LIST?
 $intLowPrivDomGroups = @()
-$intLowPrivDomGroups += "Domänen Benutzer"
+$intLowPrivDomGroups += "Domänen-Benutzer"
 $intLowPrivDomGroups += "Authentifizierte Benutzer"
 $intLowPrivDomGroups += "Jeder"
 
@@ -54,7 +54,7 @@ $intLowPrivLocalGroups += "Authentifizierte Benutzer"
 
 # TODO ADD TO THIS LIST?
 $intLowPrivGroups = @()
-$intLowPrivGroups += "Domänen Benutzer"
+$intLowPrivGroups += "Domänen-Benutzer"
 $intLowPrivGroups += "Authentifizierte Benutzer"
 $intLowPrivGroups += "Jeder"
 $intLowPrivGroups += "Benutzer"
@@ -63,8 +63,8 @@ $intLowPrivGroups += "Benutzer"
 $intPrivDomGroups = @()
 $intPrivDomGroups += "Domänen-Admins"
 $intPrivDomGroups += "Administratoren"
-$intPrivDomGroups += "DNS Administratoren"
-$intPrivDomGroups += "Backup Operatoren"
+$intPrivDomGroups += "DNS-Administratoren"
+$intPrivDomGroups += "Backup-Operatoren"
 $intPrivDomGroups += "Organisations-Admins"
 $intPrivDomGroups += "Schema-Admins"
 $intPrivDomGroups += "Server-Operatoren"
