@@ -32,43 +32,43 @@
 
 # TODO ADD TO THIS LIST
 $intPrivLocalGroups = @()
-$intPrivLocalGroups += "Administrators"
-$intPrivLocalGroups += "Backup Operators"
-$intPrivLocalGroups += "Hyper-V Administrators"
-$intPrivLocalGroups += "Power Users"
+$intPrivLocalGroups += "Administratoren"
+$intPrivLocalGroups += "Backup Operatoren"
+$intPrivLocalGroups += "Hyper-V Administratoren"
+$intPrivLocalGroups += "Super User"
 $intPrivLocalGroups += "Print Operators"
-$intPrivLocalGroups += "Remote Desktop Users"
-$intPrivLocalGroups += "Remote Management Users"
+$intPrivLocalGroups += "Remote Desktop Benutzer"
+$intPrivLocalGroups += "Remote Verwaltungs Benutzer"
 
 # TODO ADD TO THIS LIST?
 $intLowPrivDomGroups = @()
-$intLowPrivDomGroups += "Domain Users"
-$intLowPrivDomGroups += "Authenticated Users"
-$intLowPrivDomGroups += "Everyone"
+$intLowPrivDomGroups += "Domänen Benutzer"
+$intLowPrivDomGroups += "Authentifizierte Benutzer"
+$intLowPrivDomGroups += "Jeder"
 
 # TODO ADD TO THIS LIST?
 $intLowPrivLocalGroups = @()
-$intLowPrivLocalGroups += "Users"
-$intLowPrivLocalGroups += "Everyone"
-$intLowPrivLocalGroups += "Authenticated Users"
+$intLowPrivLocalGroups += "Benutzer"
+$intLowPrivLocalGroups += "Jeder"
+$intLowPrivLocalGroups += "Authentifizierte Benutzer"
 
 # TODO ADD TO THIS LIST?
 $intLowPrivGroups = @()
-$intLowPrivGroups += "Domain Users"
-$intLowPrivGroups += "Authenticated Users"
-$intLowPrivGroups += "Everyone"
-$intLowPrivGroups += "Users"
+$intLowPrivGroups += "Domänen Benutzer"
+$intLowPrivGroups += "Authentifizierte Benutzer"
+$intLowPrivGroups += "Jeder"
+$intLowPrivGroups += "Benutzer"
 
 # TODO ADD TO THIS LIST?
 $intPrivDomGroups = @()
-$intPrivDomGroups += "Domain Admins"
-$intPrivDomGroups += "Administrators"
-$intPrivDomGroups += "DNS Admins"
-$intPrivDomGroups += "Backup Operators"
-$intPrivDomGroups += "Enterprise Admins"
-$intPrivDomGroups += "Schema Admins"
-$intPrivDomGroups += "Server Operators"
-$intPrivDomGroups += "Account Operators"
+$intPrivDomGroups += "Domänen-Admins"
+$intPrivDomGroups += "Administratoren"
+$intPrivDomGroups += "DNS Administratoren"
+$intPrivDomGroups += "Backup Operatoren"
+$intPrivDomGroups += "Organisations-Admins"
+$intPrivDomGroups += "Schema-Admins"
+$intPrivDomGroups += "Server-Operatoren"
+$intPrivDomGroups += "Account Operatoren"
 
 # THIS ONE IS FINE
 $intRights = @()
@@ -86,7 +86,7 @@ $intRights += "SeLoadDriverPrivilege"
 $intRights += "SeRemoteInteractiveLogonRight"
 
 $boringTrustees = @()
-$boringTrustees += "BUILTIN\Administrators"
+$boringTrustees += "BUILTIN\Administratoren"
 $boringTrustees += "NT AUTHORITY\SYSTEM"
 
 # The blurbs for each check displayed if you run with -blurb enabled.
@@ -95,9 +95,9 @@ $blurbs.Add("Get-GPOEnvVars", "Environment variables being set. Might find somet
 $blurbs.Add("Get-GPORegSettings", "A bunch more 'misc' security settings, including all the MS Office settings around macros etc.")
 $blurbs.Add("Get-GPOShortcuts", "Creates shortcuts which could provide useful intel on internal applications. Alternatively, if you can modify the target of a shortcut you might be able to replace it with /nasty.")
 $blurbs.Add("Get-GPOPerms", "These are the permissions on the Group Policy Object itself. If you have modify rights here, you can take over any user or computer that the policy applies to.")
-$blurbs.Add("Get-GPOUsers", "Entries in here add, change, or remove local users from hosts. If you see a password in here that's probably bad.")
+$blurbs.Add("Get-GPOBenutzer", "Entries in here add, change, or remove local Benutzer from hosts. If you see a password in here that's probably bad.")
 $blurbs.Add("Get-GPOGroups", "These entries make changes to local groups on the hosts. If someone has been added to a highly privileged group that might be useful to you?")
-$blurbs.Add("Get-GPOUserRights", "This is where you'll see users and groups being assigned interesting privileges on hosts. Google the name of the right being assigned if you wanna know what it does.")
+$blurbs.Add("Get-GPOUserRights", "This is where you'll see Benutzer and groups being assigned interesting privileges on hosts. Google the name of the right being assigned if you wanna know what it does.")
 $blurbs.Add("Get-GPOSchedTasks", "These are scheduled tasks being pushed to hosts. Sometimes they have credentials and stuff in them?")
 $blurbs.Add("Get-GPOMSIInstallation", "These are MSI files that are being installed via group policy. If you can replace one of them with something nasty you could probably do something evil?")
 $blurbs.Add("Get-GPOScripts", "These are startup and shutdown scripts, that kind of thing. If you can edit one you can probably have a nice time?")
@@ -115,22 +115,22 @@ $blurbs.Add("Get-GPOAccountSettings", "These are all the settings that define st
 # There's a whole pile of these functions. Each one consumes a single <GPO> object from a Get-GPOReport XML report,
 # then depending on the -Level parameter it should output interesting/vulnerable/any policy it can process.
 # The rule of thumb for whether a check function should exist at all is "Does this class of policy have any possible settings with security impact?"
-# The rule of thumb for whether a setting is "Vulnerable" enough for Level 3 is "If it is likely to result in large numbers of users or the current user
+# The rule of thumb for whether a setting is "Vulnerable" enough for Level 3 is "If it is likely to result in large numbers of Benutzer or the current user
 # being able to get a shell or an RDP session on a host".
 # The rule of thumb for whether a setting is "Interesting" enough for Level 2 is "if it could meet the criteria for Level 3 but Grouper can't tell
 # whether it does without user intervention."
 # At the moment Level 1 is pretty much just showing all the settings that Grouper can parse, but in the future it should filter out settings that
 # have been configured 'securely', where there is a clear best-practice option.
 
-Function Get-GPOUsers {
+Function Get-GPOBenutzer {
     [cmdletbinding()]
     # Consumes a single <GPO> object from a Get-GPOReport XML report.
 
     ######
-    # Description: Checks for changes made to local users.
+    # Description: Checks for changes made to local Benutzer.
     # Level 3: Only show instances where a password has been set, i.e. GPP Passwords.
-    # Level 2: All users and all changes.
-    # Level 1: All users and all changes.
+    # Level 2: All Benutzer and all changes.
+    # Level 1: All Benutzer and all changes.
     ######
 
     Param (
@@ -142,14 +142,14 @@ Function Get-GPOUsers {
     $GPOisvulnerable = $false
 
     # Grab an array of the settings we're interested in from the GPO.
-    $settingsUsers = ($polXml.ExtensionData.Extension.LocalUsersAndGroups.User | Sort-Object GPOSettingOrder)
+    $settingsBenutzer = ($polXml.ExtensionData.Extension.LocalBenutzerAndGroups.User | Sort-Object GPOSettingOrder)
 
     # Check if there's actually anything in the array.
-    if ($settingsUsers) {
+    if ($settingsBenutzer) {
         $output = @{}
 
         # Iterate over array of settings, writing out only those we care about.
-        foreach ($setting in $settingsUsers) {
+        foreach ($setting in $settingsBenutzer) {
 
             #see if we have any stored encrypted passwords
             $cpasswordcrypt = $setting.properties.cpassword
@@ -193,7 +193,7 @@ Function Get-GPOGroups {
 
     ######
     # Description: Checks for changes made to local groups.
-    # Level 3: If Domain Users, Everyone, Authenticated Users get added to 'interesting groups'.
+    # Level 3: If Domänen Benutzer, Jeder, Authentifizierte Benutzer get added to 'interesting groups'.
     # Level 2: Show changes to groups that grant meaningful security-relevant access.
     # Level 1: All groups and all changes.
     ######
@@ -201,7 +201,7 @@ Function Get-GPOGroups {
     $GPOIsInteresting = $false
     $GPOIsVulnerable = $false
 
-    $settingsGroups = ($polXml.ExtensionData.Extension.LocalUsersAndGroups.Group | Sort-Object GPOSettingOrder)
+    $settingsGroups = ($polXml.ExtensionData.Extension.LocalBenutzerAndGroups.Group | Sort-Object GPOSettingOrder)
 
     if ($settingsGroups) {
 	    foreach ($setting in $settingsGroups) {
@@ -265,9 +265,9 @@ Function Get-GPOUserRights {
     )
 
     ######
-    # Description: Checks for user rights granted to users and groups.
+    # Description: Checks for user rights granted to Benutzer and groups.
     # Level 3: Only show "Interesting" rights, i.e. those that can be used for local privilege escalation or remote access,
-    #             and only if they've been assigned to Domain Users, Authenticated Users, or Everyone.
+    #             and only if they've been assigned to Domänen Benutzer, Authentifizierte Benutzer, or Jeder.
     # Level 2: Only show "Interesting" rights, i.e. those that can be used for local privilege escalation or remote access.
     # Level 1: All non-default.
     ######
@@ -412,7 +412,7 @@ Function Get-GPOMSIInstallation {
 
     ######
     # Description: Checks for MSI installers being used to install software.
-    # Level 3: TODO Only show instances where the file is writable by the current user or 'Everyone' or 'Domain Users' or 'Authenticated Users'.
+    # Level 3: TODO Only show instances where the file is writable by the current user or 'Jeder' or 'Domänen Benutzer' or 'Authentifizierte Benutzer'.
     # Level 2: All MSI installations.
     # Level 1: All MSI installations.
     ######
@@ -471,7 +471,7 @@ Function Get-GPOScripts {
 
     ######
     # Description: Checks for startup/shutdown/logon/logoff scripts.
-    # Level 3: TODO Only show instances where the file is writable by the current user or 'Everyone' or 'Domain Users' or 'Authenticated Users'.
+    # Level 3: TODO Only show instances where the file is writable by the current user or 'Jeder' or 'Domänen Benutzer' or 'Authentifizierte Benutzer'.
     # Level 2: All scripts.
     # Level 1: All scripts.
     ######
@@ -533,7 +533,7 @@ Function Get-GPOFileUpdate {
 
     ######
     # Description: Checks for files being copied/updated/whatever.
-    # Level 3: TODO Only show instances where the 'fromPath' file is writable by the current user or 'Everyone' or 'Domain Users' or 'Authenticated Users'.
+    # Level 3: TODO Only show instances where the 'fromPath' file is writable by the current user or 'Jeder' or 'Domänen Benutzer' or 'Authentifizierte Benutzer'.
     # Level 2: All File Updates where FromPath is a network share
     # Level 1: All File Updates.
     ######
@@ -596,7 +596,7 @@ Function Get-GPOFilePerms {
 
     ######
     # Description: Checks for changes to local file permissions.
-    # Level 3: TODO Only show instances where the file is writable by the current user or 'Everyone' or 'Domain Users' or 'Authenticated Users'.
+    # Level 3: TODO Only show instances where the file is writable by the current user or 'Jeder' or 'Domänen Benutzer' or 'Authentifizierte Benutzer'.
     # Level 2: TODO Also show instances where any user/group other than the usual default Domain/Enterprise Admins has 'Full Control'.
     # Level 1: All file permission changes.
     ######
@@ -637,7 +637,7 @@ Function Get-GPOSecurityOptions {
         if ($level -le 2) {
             $intKeyNameBools = @{}
             $intKeyNameBools.Add("MACHINE\System\CurrentControlSet\Control\Lsa\DisableDomainCreds", "false")
-            $intKeyNameBools.Add("MACHINE\System\CurrentControlSet\Control\Lsa\EveryoneIncludesAnonymous", "true")
+            $intKeyNameBools.Add("MACHINE\System\CurrentControlSet\Control\Lsa\JederIncludesAnonymous", "true")
             $intKeyNameBools.Add("MACHINE\System\CurrentControlSet\Control\Lsa\LimitBlankPasswordUse", "false")
             $intKeyNameBools.Add("MACHINE\System\CurrentControlSet\Control\Lsa\NoLMHash", "false")
             $intKeyNameBools.Add("MACHINE\System\CurrentControlSet\Control\Lsa\RestrictAnonymous", "false")
@@ -822,7 +822,7 @@ Function Get-GPOFolderRedirection {
 
     ######
     # Description: Checks for user Folder redirections.
-    # Level 3: TODO Only show instances where DestPath is writable by the current user or 'Everyone' or 'Domain Users' or 'Authenticated Users'.
+    # Level 3: TODO Only show instances where DestPath is writable by the current user or 'Jeder' or 'Domänen Benutzer' or 'Authentifizierte Benutzer'.
     # Level 2: TODO Also show instances where any user/group other than the usual default Domain/Enterprise Admins has 'Full Control'.
     # Level 1: All Folder Redirection.
     ######
@@ -1170,7 +1170,7 @@ Function Get-GPORegSettings {
         $intRegPolicies += "Specify communities"
         $intRegPolicies += "Communities"
         $intRegPolicies += "Allow non-administrators to install drivers for these device setup classes"
-        $intRegPolicies += "Allow Users to install device drivers for these classes:"
+        $intRegPolicies += "Allow Benutzer to install device drivers for these classes:"
         #MS Office settings starts here
         $intRegPolicies += "Add-ons"
         $intRegPolicies += "Add-on Management"
@@ -1288,7 +1288,7 @@ Function Get-GPORegSettings {
         $vulnRegPolicies += "Specify communities"
         $vulnRegPolicies += "Communities"
         $vulnRegPolicies += "Allow non-administrators to install drivers for these device setup classes"
-        $vulnRegPolicies += "Allow Users to install device drivers for these classes:"
+        $vulnRegPolicies += "Allow Benutzer to install device drivers for these classes:"
 
         # I hate this nested looping shit more than anything I've ever written.
         foreach ($setting in $settingsPolicies) {
@@ -1575,7 +1575,7 @@ Function Get-GPOPermissions {
     $boringPerms = @()
     $boringPerms += "Read"
     $boringPerms += "Apply Group Policy"
-    # an array of users who have RW permissions on GPOs by default, so they're boring too.
+    # an array of Benutzer who have RW permissions on GPOs by default, so they're boring too.
     $boringTrustees = @()
     $boringTrustees += "Domain Admins"
     $boringTrustees += "Enterprise Admins"
@@ -1658,39 +1658,39 @@ Function Invoke-AuditGPO {
 
     # Define settings groups so we can send through both if the same type of policy settings can appear in either.
     $computerSettings = $xmlgpo.Computer
-    $userSettings = $xmlgpo.User
+    $Benutzerettings = $xmlgpo.User
 
     # Build an array of all our Get-GPO* check scriptblocks
     $polchecks = @()
     $polchecks += {Get-GPORegKeys -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPORegKeys -Level $level -polXML $userSettings}
-    $polchecks += {Get-GPOUsers -Level $level -polXML $userSettings}
-    $polchecks += {Get-GPOUsers -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPOGroups -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPORegKeys -Level $level -polXML $Benutzerettings}
+    $polchecks += {Get-GPOBenutzer -Level $level -polXML $Benutzerettings}
+    $polchecks += {Get-GPOBenutzer -Level $level -polXML $computerSettings}
+    $polchecks += {Get-GPOGroups -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOGroups -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPOScripts -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPOScripts -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOScripts -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPOFileUpdate -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPOFileUpdate -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOFileUpdate -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPOMSIInstallation -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPOMSIInstallation -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOMSIInstallation -Level $level -polXML $computerSettings}
     $polchecks += {Get-GPOUserRights -Level $level -polXML $xmlgpo}
     $polchecks += {Get-GPOSchedTasks -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPOSchedTasks -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPOSchedTasks -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOFolderRedirection -Level $level -polXML $xmlgpo}
     $polchecks += {Get-GPOFilePerms -Level $level -polXML $xmlgpo}
     $polchecks += {Get-GPOSecurityOptions -Level $level -polXML $xmlgpo}
     $polchecks += {Get-GPOAccountSettings -Level $level -polXML $xmlgpo}
     $polchecks += {Get-GPONetworkShares -Level $level -polXml $xmlgpo}
-    $polchecks += {Get-GPOFolders -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPOFolders -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOFolders -Level $level -polXML $computerSettings}
     $polchecks += {Get-GPORegSettings -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPORegSettings -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPORegSettings -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOIniFiles -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPOIniFiles -Level $level -polXML $userSettings}
+    $polchecks += {Get-GPOIniFiles -Level $level -polXML $Benutzerettings}
     $polchecks += {Get-GPOEnvVars -Level $level -polXML $computerSettings}
-    $polchecks += {Get-GPOEnvVars -Level $level -polXML $userSettings}
-    $polchecks += {Get-GPOShortcuts -Level $level -polXml $userSettings}
+    $polchecks += {Get-GPOEnvVars -Level $level -polXML $Benutzerettings}
+    $polchecks += {Get-GPOShortcuts -Level $level -polXml $Benutzerettings}
     $polchecks += {Get-GPOShortcuts -Level $level -polXml $computerSettings}
     $polchecks += {Get-GPOFWSettings -Level $level -polXml $xmlgpo}
 
@@ -1736,7 +1736,7 @@ Function Invoke-AuditGPO {
             Switch ($polcheckbits[4])
             {
              '$computerSettings' { $polchecktype = 'Computer Policy'; break }
-             '$userSettings' { $polchecktype = 'User Policy'; break }
+             '$Benutzerettings' { $polchecktype = 'User Policy'; break }
              '$xmlgpo' { $polchecktype = 'All Policy'; break }
              default {''; break}
             }
@@ -1777,9 +1777,9 @@ Function Invoke-AuditGPOReport {
         [ValidateSet(1,2,3)]
         [int]$level = 2,
 
-        [Parameter(ParameterSetName='WithFile', Mandatory=$false, HelpMessage="Provide extra words to tell users wtf all this output means and what they might want to do with it.")]
-        [Parameter(ParameterSetName='WithoutFile', Mandatory=$false, HelpMessage="Provide extra words to tell users wtf all this output means and what they might want to do with it.")]
-        [Parameter(ParameterSetName='OnlineDomain', Mandatory=$false, HelpMessage="Provide extra words to tell users wtf all this output means and what they might want to do with it.")]
+        [Parameter(ParameterSetName='WithFile', Mandatory=$false, HelpMessage="Provide extra words to tell Benutzer wtf all this output means and what they might want to do with it.")]
+        [Parameter(ParameterSetName='WithoutFile', Mandatory=$false, HelpMessage="Provide extra words to tell Benutzer wtf all this output means and what they might want to do with it.")]
+        [Parameter(ParameterSetName='OnlineDomain', Mandatory=$false, HelpMessage="Provide extra words to tell Benutzer wtf all this output means and what they might want to do with it.")]
         [switch]$blurb,
 
         [Parameter(ParameterSetName='OnlineDomain', Mandatory=$true, HelpMessage="Perform online checks by actively contacting DCs within the target domain")]
